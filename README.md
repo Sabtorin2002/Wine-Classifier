@@ -113,9 +113,152 @@ Each model was optimized for parameters such as:
 
 ---
 
-## 🚀 How to Run
+# 🤖 ML Models — Training, Optimization, and Deployment
 
-1. Clone the repository:
+## 📘 Overview
+This project focuses on **training, optimizing, and evaluating multiple machine learning models** for classifying **wine quality** using **physico-chemical properties**.  
+It compares **Ridge Classifier**, **XGBoost**, and a **Multilayer Perceptron (MLP)** on the **White Wine Quality Dataset**.
+
+The workflow includes:
+- Data preprocessing and feature scaling
+- Model training and evaluation
+- Oversampling using **ADASYN** for imbalanced data
+- Hyperparameter tuning and optimization
+- Performance comparison across metrics
+
+---
+
+## 🍇 Dataset
+
+- **White Wine Quality Dataset** (UCI Repository)  
+- **4,899 samples**, each described by 11 physicochemical variables:
+  - Fixed acidity  
+  - Volatile acidity  
+  - Citric acid  
+  - Residual sugar  
+  - Chlorides  
+  - Free sulfur dioxide  
+  - Total sulfur dioxide  
+  - Density  
+  - pH  
+  - Sulphates  
+  - Alcohol  
+
+- **Target variable:** `quality`, mapped into three categories:
+  - **Low:** 3–4  
+  - **Medium:** 5–6  
+  - **High:** 7–9  
+
+- **Data Split:**  
+  - 70% training  
+  - 10% validation  
+  - 20% testing  
+
+---
+
+## 🧠 Models Implemented
+
+### 1️⃣ Ridge Classifier
+Ridge Classifier was selected for its **L2 regularization** properties, reducing coefficient variance and improving model generalization.  
+It’s suitable for **multiclass problems** and effectively handles **correlated features**.
+
+#### ⚙️ Baseline Results
+| Metric | Accuracy | ROC AUC | MCC |
+|:--------|:----------:|:---------:|:---------:|
+| RidgeClassifier (α=1.0) | 77.43% | 0.558 | 0.281 |
+
+- **Best performance:** medium-quality wines  
+- **Weakness:** failed to predict low-quality wines (recall = 0)
+
+#### 🔧 Optimized RidgeClassifier (α=5.0, class_weight="balanced")
+| Metric | Accuracy | ROC AUC | MCC |
+|:--------|:----------:|:---------:|:---------:|
+| RidgeClassifier (balanced) | 53.47% | — | — |
+
+- Improved recall for minority classes but overall accuracy dropped.  
+- Trade-off between balanced recall and total accuracy.
+
+---
+
+### 2️⃣ ADASYN Oversampling
+Used **Adaptive Synthetic Sampling (ADASYN)** to balance class distribution.  
+This technique generates new synthetic examples for underrepresented classes.
+
+| Sampling Strategy | Accuracy | ROC AUC | Notes |
+|:------------------|:---------:|:---------:|:------|
+| `minority` | 60.28% | 0.6035 | Boosted recall for `low` class |
+| `all` | 49.43% | 0.6035 | Equalized all classes but lower accuracy |
+
+- **Clasa “low” recall** improved from 0.00 → 0.69  
+- **Macro-average F1:** increased stability across classes
+
+---
+
+### 3️⃣ XGBoost Classifier
+Implemented **XGBoost (v3.0.2)** — a gradient boosting ensemble model optimized for performance and regularization (L1/L2).
+
+#### ⚙️ Baseline Model
+| Metric | Accuracy | ROC AUC | MCC |
+|:--------|:----------:|:---------:|:---------:|
+| XGBoost (multi:softprob) | 77.18% | 0.3289 | 0.3246 |
+
+- **Medium class:** F1 = 0.86  
+- **Low class:** poor recall (0.06) due to imbalance  
+- **Weighted Avg Accuracy:** good, but macro-average shows class disparity
+
+#### 🔧 Optimized Model (early stopping, tuned params)
+| Variant | Accuracy | Key Params |
+|:---------|:----------:|:------------|
+| Early Stopping + merror | 75.79% | `max_depth=7`, `learning_rate=0.1` |
+| Early Stopping + mlogloss | 77.18% | `subsample=1.0`, `min_child_weight=1` |
+| **Best Configuration** | **77.81%** | `max_depth=12`, `subsample=0.8`, `min_child_weight=3` |
+
+- **Precision (high):** 0.63  
+- **Recall (medium):** 0.93  
+- **Macro-average F1:** 0.49 → improved generalization  
+- Early stopping prevents overfitting during boosting iterations.
+
+---
+
+### 4️⃣ MLP (Multilayer Perceptron)
+An **MLP neural network** was tested to explore non-linear decision boundaries.
+- Tuned using `ReLU` activations and `Adam` optimizer.
+- Compared against Ridge and XGBoost baselines.
+- Performance competitive, especially with feature scaling.
+
+---
+
+## 📈 Evaluation Metrics
+
+| Metric | Description |
+|:--------|:-------------|
+| **Accuracy** | Percentage of correctly predicted classes |
+| **Precision / Recall / F1** | Per-class and macro averages |
+| **ROC AUC** | Multiclass (One-vs-Rest) discriminative capability |
+| **Matthews Corr. Coef. (MCC)** | Balanced measure accounting for all confusion matrix terms |
+
+---
+
+## ⚗️ Key Observations
+- Alcohol content remains the **most predictive feature** for wine quality.  
+- RidgeClassifier is interpretable but sensitive to imbalance.  
+- ADASYN improves fairness across classes but can lower accuracy.  
+- XGBoost consistently delivers **best accuracy (~78%)**.  
+- Neural networks can reach similar results with more data tuning.
+
+---
+
+## 🧩 Tech Stack
+- **Language:** Python  
+- **Libraries:**  
+  - `pandas`, `numpy`, `matplotlib`, `seaborn`  
+  - `scikit-learn`, `imbalanced-learn`  
+  - `xgboost`, `tensorflow` / `keras` (for MLP)
+
+---
+
+## 🚀 How to Run
+1. Clone the repo:
    ```bash
-   git clone https://github.com/<your-username>/ExploratoryDataAnalysis-WineClassifier.git
-   cd ExploratoryDataAnalysis-WineClassifier
+   git clone https://github.com/<your-username>/ML-Models-Training-Optimization.git
+   cd ML-Models-Training-Optimization
